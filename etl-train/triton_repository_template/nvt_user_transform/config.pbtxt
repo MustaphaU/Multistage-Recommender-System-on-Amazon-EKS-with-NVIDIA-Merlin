@@ -1,0 +1,37 @@
+name: "nvt_user_transform"
+backend: "python"
+input {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "age"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "age_norm"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "age_binned"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}

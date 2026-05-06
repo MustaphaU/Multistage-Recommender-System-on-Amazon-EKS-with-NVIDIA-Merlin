@@ -1,0 +1,24 @@
+name: "context_preprocessor"
+backend: "python"
+input {
+  name: "device_type"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+  optional: true
+}
+input {
+  name: "timestamp"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+  optional: true
+}
+output {
+  name: "device_type"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "timestamp"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}

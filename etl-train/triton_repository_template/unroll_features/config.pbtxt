@@ -1,0 +1,162 @@
+name: "unroll_features"
+backend: "python"
+input {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "age_norm"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "age_binned"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "device_type"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "hour_sine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "hour_cosine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "day_of_week_sine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "day_of_week_cosine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "item_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "category_l1"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "category_l2"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "item_gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "price_log_norm"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "item_image_embeddings"
+  data_type: TYPE_FP32
+  dims: [ -1, 64 ]
+}
+input {
+  name: "item_description_embeddings"
+  data_type: TYPE_FP32
+  dims: [ -1, 64 ]
+}
+output {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "age_norm"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "age_binned"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "device_type"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "hour_sine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "hour_cosine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "day_of_week_sine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "day_of_week_cosine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "item_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "category_l1"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "category_l2"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "item_gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "price_log_norm"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "item_image_embeddings"
+  data_type: TYPE_FP32
+  dims: [ -1, 64 ]
+}
+output {
+  name: "item_description_embeddings"
+  data_type: TYPE_FP32
+  dims: [ -1, 64 ]
+}

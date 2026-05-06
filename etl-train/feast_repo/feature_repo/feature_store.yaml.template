@@ -1,0 +1,14 @@
+project: my_feast_repo
+provider: aws
+registry: s3://${S3_BUCKET}/feast/registry.db
+offline_store:
+    type: athena
+    region: ${AWS_REGION}
+    data_source: AwsDataCatalog
+    database: ${GLUE_DATABASE}
+    workgroup: ${ATHENA_WORKGROUP}
+    s3_staging_location: s3://${S3_BUCKET}/feast/athena_staging
+online_store:
+    type: redis
+    connection_string: ${REDIS_HOST}:${REDIS_PORT},db=0,ssl=true
+entity_key_serialization_version: 2

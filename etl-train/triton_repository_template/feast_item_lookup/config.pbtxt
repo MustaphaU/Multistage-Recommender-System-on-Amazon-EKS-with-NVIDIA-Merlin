@@ -1,0 +1,32 @@
+name: "feast_item_lookup"
+backend: "python"
+input {
+  name: "filtered_ids"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "item_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "price"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "category_l1"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "category_l2"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "item_gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}

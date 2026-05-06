@@ -1,0 +1,397 @@
+name: "ensemble_model"
+platform: "ensemble"
+max_batch_size: 0
+input {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "device_type"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+  optional: true
+}
+input {
+  name: "timestamp"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+  optional: true
+}
+output {
+  name: "ordered_ids"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "ordered_scores"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+ensemble_scheduling {
+  # ── Step 0: Context preprocessing (fill defaults) ────────────────
+  step {
+    model_name: "context_preprocessor"
+    model_version: -1
+    input_map {
+      key: "device_type"
+      value: "device_type"
+    }
+    input_map {
+      key: "timestamp"
+      value: "timestamp"
+    }
+    output_map {
+      key: "device_type"
+      value: "preproc_device_type"
+    }
+    output_map {
+      key: "timestamp"
+      value: "preproc_timestamp"
+    }
+  }
+  # ── Step 1a: Feast user lookup ──────────────────────────────────────
+  step {
+    model_name: "feast_user_lookup"
+    model_version: -1
+    input_map {
+      key: "user_id"
+      value: "user_id"
+    }
+    output_map {
+      key: "user_id"
+      value: "feast_user_id"
+    }
+    output_map {
+      key: "age"
+      value: "feast_age"
+    }
+    output_map {
+      key: "gender"
+      value: "feast_gender"
+    }
+  }
+  # ── Step 1b: NVTabular user transform ──────────────────────────────
+  step {
+    model_name: "nvt_user_transform"
+    model_version: -1
+    input_map {
+      key: "user_id"
+      value: "feast_user_id"
+    }
+    input_map {
+      key: "age"
+      value: "feast_age"
+    }
+    input_map {
+      key: "gender"
+      value: "feast_gender"
+    }
+    output_map {
+      key: "user_id"
+      value: "nvt_user_id"
+    }
+    output_map {
+      key: "age_norm"
+      value: "nvt_age_norm"
+    }
+    output_map {
+      key: "age_binned"
+      value: "nvt_age_binned"
+    }
+    output_map {
+      key: "gender"
+      value: "nvt_gender"
+    }
+  }
+  # ── Step 1c: NVTabular context transform ───────────────────────────
+  step {
+    model_name: "nvt_context_transform"
+    model_version: -1
+    input_map {
+      key: "device_type"
+      value: "preproc_device_type"
+    }
+    input_map {
+      key: "timestamp"
+      value: "preproc_timestamp"
+    }
+    output_map {
+      key: "device_type"
+      value: "nvt_device_type"
+    }
+    output_map {
+      key: "hour_sine"
+      value: "nvt_hour_sine"
+    }
+    output_map {
+      key: "hour_cosine"
+      value: "nvt_hour_cosine"
+    }
+    output_map {
+      key: "day_of_week_sine"
+      value: "nvt_day_of_week_sine"
+    }
+    output_map {
+      key: "day_of_week_cosine"
+      value: "nvt_day_of_week_cosine"
+    }
+  }
+  # ── Step 2: Query tower ────────────────────────────────────────────
+  step {
+    model_name: "query_tower"
+    model_version: -1
+    input_map {
+      key: "user_id"
+      value: "nvt_user_id"
+    }
+    input_map {
+      key: "age_norm"
+      value: "nvt_age_norm"
+    }
+    input_map {
+      key: "age_binned"
+      value: "nvt_age_binned"
+    }
+    input_map {
+      key: "gender"
+      value: "nvt_gender"
+    }
+    output_map {
+      key: "output_1"
+      value: "qt_output_1"
+    }
+  }
+  # ── Step 3: FAISS retrieval ────────────────────────────────────────
+  step {
+    model_name: "faiss_retrieval"
+    model_version: -1
+    input_map {
+      key: "output_1"
+      value: "qt_output_1"
+    }
+    output_map {
+      key: "candidate_ids"
+      value: "ret_candidate_ids"
+    }
+  }
+  # ── Step 4: Seen filter ────────────────────────────────────────────
+  step {
+    model_name: "filter_seen_items"
+    model_version: -1
+    input_map {
+      key: "user_id"
+      value: "user_id"
+    }
+    input_map {
+      key: "candidate_ids"
+      value: "ret_candidate_ids"
+    }
+    output_map {
+      key: "filtered_ids"
+      value: "sf_filtered_ids"
+    }
+  }
+  # ── Step 5a: Feast item lookup ─────────────────────────────────────
+  step {
+    model_name: "feast_item_lookup"
+    model_version: -1
+    input_map {
+      key: "filtered_ids"
+      value: "sf_filtered_ids"
+    }
+    output_map {
+      key: "item_id"
+      value: "feast_item_id"
+    }
+    output_map {
+      key: "price"
+      value: "feast_price"
+    }
+    output_map {
+      key: "category_l1"
+      value: "feast_category_l1"
+    }
+    output_map {
+      key: "category_l2"
+      value: "feast_category_l2"
+    }
+    output_map {
+      key: "item_gender"
+      value: "feast_item_gender"
+    }
+  }
+  # ── Step 5b: NVTabular item transform ──────────────────────────────
+  step {
+    model_name: "nvt_item_transform"
+    model_version: -1
+    input_map {
+      key: "item_id"
+      value: "feast_item_id"
+    }
+    input_map {
+      key: "price"
+      value: "feast_price"
+    }
+    input_map {
+      key: "category_l1"
+      value: "feast_category_l1"
+    }
+    input_map {
+      key: "category_l2"
+      value: "feast_category_l2"
+    }
+    input_map {
+      key: "item_gender"
+      value: "feast_item_gender"
+    }
+    output_map {
+      key: "item_id"
+      value: "nvt_item_id"
+    }
+    output_map {
+      key: "category_l1"
+      value: "nvt_category_l1"
+    }
+    output_map {
+      key: "category_l2"
+      value: "nvt_category_l2"
+    }
+    output_map {
+      key: "item_gender"
+      value: "nvt_item_gender"
+    }
+    output_map {
+      key: "price_log_norm"
+      value: "nvt_price_log_norm"
+    }
+  }
+  # ── Step 5c: Embedding lookup ──────────────────────────────────────
+  step {
+    model_name: "multimodal_embedding_lookup"
+    model_version: -1
+    input_map {
+      key: "item_id"
+      value: "nvt_item_id"
+    }
+    output_map {
+      key: "item_image_embeddings"
+      value: "emb_image"
+    }
+    output_map {
+      key: "item_description_embeddings"
+      value: "emb_text"
+    }
+  }
+  # ── Step 6a: Unroll features ───────────────────────────────────────
+  step {
+    model_name: "unroll_features"
+    model_version: -1
+    # user features
+    input_map { key: "user_id"    value: "nvt_user_id" }
+    input_map { key: "age_norm"   value: "nvt_age_norm" }
+    input_map { key: "age_binned" value: "nvt_age_binned" }
+    input_map { key: "gender"     value: "nvt_gender" }
+    # context features (bypass retrieval path)
+    input_map { key: "device_type" value: "nvt_device_type" }
+    input_map { key: "hour_sine"    value: "nvt_hour_sine" }
+    input_map { key: "hour_cosine"    value: "nvt_hour_cosine" }
+    input_map { key: "day_of_week_sine"     value: "nvt_day_of_week_sine" }
+    input_map { key: "day_of_week_cosine"     value: "nvt_day_of_week_cosine" }
+    # item features
+    input_map { key: "item_id"      value: "nvt_item_id" }
+    input_map { key: "category_l1"  value: "nvt_category_l1" }
+    input_map { key: "category_l2"  value: "nvt_category_l2" }
+    input_map { key: "item_gender"  value: "nvt_item_gender" }
+    input_map { key: "price_log_norm" value: "nvt_price_log_norm" }
+    input_map { key: "item_image_embeddings"       value: "emb_image" }
+    input_map { key: "item_description_embeddings" value: "emb_text" }
+    # outputs
+    output_map { key: "user_id"    value: "unroll_user_id" }
+    output_map { key: "age_norm"   value: "unroll_age_norm" }
+    output_map { key: "age_binned" value: "unroll_age_binned" }
+    output_map { key: "gender"     value: "unroll_gender" }
+    output_map { key: "device_type" value: "unroll_device_type" }
+    output_map { key: "hour_sine"    value: "unroll_hour_sine" }
+    output_map { key: "hour_cosine"    value: "unroll_hour_cosine" }
+    output_map { key: "day_of_week_sine"     value: "unroll_day_of_week_sine" }
+    output_map { key: "day_of_week_cosine"     value: "unroll_day_of_week_cosine" }
+    output_map { key: "item_id"      value: "unroll_item_id" }
+    output_map { key: "category_l1"  value: "unroll_category_l1" }
+    output_map { key: "category_l2"  value: "unroll_category_l2" }
+    output_map { key: "item_gender"  value: "unroll_item_gender" }
+    output_map { key: "price_log_norm" value: "unroll_price_log_norm" }
+    output_map { key: "item_image_embeddings"       value: "unroll_image_emb" }
+    output_map { key: "item_description_embeddings" value: "unroll_text_emb" }
+  }
+  # ── Step 6b: DLRM ranking (native TF) ─────────────────────────────
+  step {
+    model_name: "dlrm_ranking"
+    model_version: -1
+    # user features
+    input_map { key: "user_id"    value: "unroll_user_id" }
+    input_map { key: "age_norm"   value: "unroll_age_norm" }
+    input_map { key: "age_binned" value: "unroll_age_binned" }
+    input_map { key: "gender"     value: "unroll_gender" }
+    # context features
+    input_map { key: "device_type" value: "unroll_device_type" }
+    input_map { key: "hour_sine"    value: "unroll_hour_sine" }
+    input_map { key: "hour_cosine"    value: "unroll_hour_cosine" }
+    input_map { key: "day_of_week_sine"     value: "unroll_day_of_week_sine" }
+    input_map { key: "day_of_week_cosine"     value: "unroll_day_of_week_cosine" }
+    # item features
+    input_map { key: "item_id"      value: "unroll_item_id" }
+    input_map { key: "category_l1"  value: "unroll_category_l1" }
+    input_map { key: "category_l2"  value: "unroll_category_l2" }
+    input_map { key: "item_gender"  value: "unroll_item_gender" }
+    input_map { key: "price_log_norm" value: "unroll_price_log_norm" }
+    input_map { key: "item_image_embeddings"       value: "unroll_image_emb" }
+    input_map { key: "item_description_embeddings" value: "unroll_text_emb" }
+    output_map {
+      key: "click/binary_classification_task"
+      value: "dlrm_scores"
+    }
+  }
+  # ── Step 6c: Softmax sampling ──────────────────────────────────────
+  step {
+    model_name: "softmax_sampling"
+    model_version: -1
+    input_map {
+      key: "item_id"
+      value: "unroll_item_id"
+    }
+    input_map {
+      key: "click/binary_classification_task"
+      value: "dlrm_scores"
+    }
+    output_map {
+      key: "ordered_ids"
+      value: "softmax_ordered_ids"
+    }
+    output_map {
+      key: "ordered_scores"
+      value: "softmax_ordered_scores"
+    }
+  }
+  # ── Step 7: ID decoder (NVT index → original item ID) ─────────────
+  step {
+    model_name: "item_id_decoder"
+    model_version: -1
+    input_map {
+      key: "ordered_ids"
+      value: "softmax_ordered_ids"
+    }
+    input_map {
+      key: "ordered_scores"
+      value: "softmax_ordered_scores"
+    }
+    output_map {
+      key: "ordered_ids"
+      value: "ordered_ids"
+    }
+    output_map {
+      key: "ordered_scores"
+      value: "ordered_scores"
+    }
+  }
+}

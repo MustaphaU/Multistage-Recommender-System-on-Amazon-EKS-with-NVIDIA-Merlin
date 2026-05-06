@@ -1,0 +1,17 @@
+name: "filter_seen_items"
+backend: "python"
+input {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "candidate_ids"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "filtered_ids"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}

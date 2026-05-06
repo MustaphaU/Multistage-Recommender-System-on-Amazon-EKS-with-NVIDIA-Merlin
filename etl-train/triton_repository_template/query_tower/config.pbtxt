@@ -1,0 +1,36 @@
+name: "query_tower"
+backend: "tensorflow"
+platform: "tensorflow_savedmodel"
+input {
+  name: "age_binned"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "age_norm"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "output_1"
+  data_type: TYPE_FP32
+  dims: [ -1, 64 ]
+}
+parameters {
+  key: "TF_GRAPH_TAG"
+  value { string_value: "serve" }
+}
+parameters {
+  key: "TF_SIGNATURE_DEF"
+  value { string_value: "serving_default" }
+}

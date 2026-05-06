@@ -1,0 +1,27 @@
+# feature_repo/user_features.py
+from datetime import timedelta
+from feast import Entity, FeatureView, Field
+from feast.types import Int32, Float32
+from feast.infra.offline_stores.contrib.athena_offline_store.athena_source import AthenaSource
+
+user = Entity(name="user_id", join_keys=["user_id"])
+
+user_source = AthenaSource(
+    table="user_features",
+    database="${GLUE_DATABASE}",
+    data_source="AwsDataCatalog",
+    timestamp_field="datetime",
+    created_timestamp_column="created",
+)
+
+user_features_view = FeatureView(
+    name="user_features",
+    entities=[user],
+    ttl=timedelta(days=365),
+    schema=[
+        Field(name="age", dtype=Int32),
+        Field(name="gender", dtype=Int32),
+    ],
+    source=user_source,
+    online=True,
+)

@@ -1,0 +1,29 @@
+# feature_repo/item_features.py
+from datetime import timedelta
+from feast import Entity, FeatureView, Field
+from feast.types import Int32, Float32
+from feast.infra.offline_stores.contrib.athena_offline_store.athena_source import AthenaSource
+
+item = Entity(name="item_id", join_keys=["item_id"])
+
+item_source = AthenaSource(
+    table="item_features",
+    database="${GLUE_DATABASE}",
+    data_source="AwsDataCatalog",
+    timestamp_field="datetime",
+    created_timestamp_column="created",
+)
+
+item_features_view = FeatureView(
+    name="item_features",
+    entities=[item],
+    ttl=timedelta(days=365),
+    schema=[
+        Field(name="price", dtype=Float32),
+        Field(name="category_l1", dtype=Int32),
+        Field(name="category_l2", dtype=Int32),
+        Field(name="item_gender", dtype=Int32),
+    ],
+    source=item_source,
+    online=True,
+)

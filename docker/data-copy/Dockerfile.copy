@@ -1,0 +1,28 @@
+FROM amazon/aws-cli:2.33.12
+
+RUN dnf -y update && \
+    dnf -y install bash python3-pip vim tar gzip openssl && \
+    dnf clean all
+
+ENV KUBECTL_VERSION=v1.34.0
+
+RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
+    install -m 0755 kubectl /usr/local/bin/kubectl && \
+    rm kubectl
+
+RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \
+ && chmod 700 get_helm.sh \
+ && bash get_helm.sh \
+ && rm get_helm.sh
+
+RUN pip3 install --no-cache-dir kfp
+
+COPY data-copy/copy_to_pvc.sh /script/copy_to_pvc.sh
+COPY data-copy/copy_incremental.sh /script/copy_incremental.sh
+COPY triton-inference/promote_incremental.sh /script/promote_incremental.sh
+COPY triton-inference/ /script/triton-inference/
+
+RUN chmod +x /script/copy_to_pvc.sh /script/copy_incremental.sh /script/promote_incremental.sh && \
+    find /script/triton-inference -name "*.sh" -exec chmod +x {} \;
+
+WORKDIR /script

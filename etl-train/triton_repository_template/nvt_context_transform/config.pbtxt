@@ -1,0 +1,42 @@
+name: "nvt_context_transform"
+backend: "python"
+max_batch_size: 32
+dynamic_batching {
+  preferred_batch_size: [ 8, 16, 32 ]
+  max_queue_delay_microseconds: 500
+}
+input {
+  name: "device_type"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "timestamp"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "device_type"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "hour_sine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "hour_cosine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "day_of_week_sine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "day_of_week_cosine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}

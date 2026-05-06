@@ -1,0 +1,17 @@
+name: "multimodal_embedding_lookup"
+backend: "python"
+input {
+  name: "item_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "item_image_embeddings"
+  data_type: TYPE_FP32
+  dims: [ -1, 64 ]
+}
+output {
+  name: "item_description_embeddings"
+  data_type: TYPE_FP32
+  dims: [ -1, 64 ]
+}

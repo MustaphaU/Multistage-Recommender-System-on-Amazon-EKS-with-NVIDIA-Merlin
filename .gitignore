@@ -1,0 +1,11 @@
+perf_data.json
+*.yaml
+*.ipynb
+Docs/my_plan_for_eks_deployment.md
+triton_repository_experiment
+testing_incremental_training
+.image_uris
+archived_scripts
+data
+my_data_lake
+initial_data/*

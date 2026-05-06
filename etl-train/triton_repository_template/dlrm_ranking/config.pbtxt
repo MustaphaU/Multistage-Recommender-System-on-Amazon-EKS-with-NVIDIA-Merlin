@@ -1,0 +1,96 @@
+name: "dlrm_ranking"
+backend: "tensorflow"
+platform: "tensorflow_savedmodel"
+input {
+  name: "age_binned"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "age_norm"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "category_l1"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "category_l2"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "device_type"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "hour_sine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "hour_cosine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "day_of_week_sine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "day_of_week_cosine"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "item_description_embeddings"
+  data_type: TYPE_FP32
+  dims: [ -1, 64 ]
+}
+input {
+  name: "item_gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "item_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "item_image_embeddings"
+  data_type: TYPE_FP32
+  dims: [ -1, 64 ]
+}
+input {
+  name: "price_log_norm"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+input {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "click/binary_classification_task"
+  data_type: TYPE_FP32
+  dims: [ -1, 1 ]
+}
+parameters {
+  key: "TF_GRAPH_TAG"
+  value { string_value: "serve" }
+}
+parameters {
+  key: "TF_SIGNATURE_DEF"
+  value { string_value: "serving_default" }
+}

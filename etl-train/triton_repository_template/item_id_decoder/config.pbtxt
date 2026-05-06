@@ -1,0 +1,23 @@
+name: "item_id_decoder"
+backend: "python"
+max_batch_size: 0
+input {
+  name: "ordered_ids"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
+  name: "ordered_scores"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}
+output {
+  name: "ordered_ids"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "ordered_scores"
+  data_type: TYPE_FP32
+  dims: [ -1 ]
+}

@@ -1,0 +1,22 @@
+name: "feast_user_lookup"
+backend: "python"
+input {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "user_id"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "age"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
