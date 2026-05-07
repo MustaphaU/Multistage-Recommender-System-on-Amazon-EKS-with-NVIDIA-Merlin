@@ -9,4 +9,4 @@ This project multistage recommender system features:
 * Triton Server Autoscaling with Kubernetes HPA and Karpenter
 
 ### Deployment
-For deployment visit ![Docs/documentation.md](Docs/documentation.md)
+For deployment visit [Docs/documentation.md](Docs/documentation.md)
