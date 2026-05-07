@@ -2,7 +2,7 @@
 Model 5a: Feast Item Lookup (Python Backend) — In-Memory Cache
 ===============================================================
 Loads all item features from Feast once at startup into numpy arrays
-indexed by raw item_id. Per-request lookup is a pure numpy index (~0.1ms)
+indexed by raw item_id. Each requestlookup is a pure numpy index (~0.1ms)
 instead of a Feast online-store round trip (E.g., ~157ms for 300 items).
 
 Input:  filtered_ids (TYPE_INT32, [-1]) — item IDs after seen-filter

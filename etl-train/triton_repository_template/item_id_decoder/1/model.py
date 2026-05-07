@@ -39,11 +39,11 @@ class TritonPythonModel:
         for nvt_idx, row in mapping_df.iterrows():
             self.decode_table[nvt_idx] = row["item_id"]
         
-        pb_utils.Logger.log_info(
-            f"item_id_decoder ready: max_nvt_idx={max_nvt_idx}, "
-            f"sample: nvt[3]->{self.decode_table[3]}, "
-            f"nvt[1802]->{self.decode_table[min(1802, max_nvt_idx)]}"
-        )
+        # pb_utils.Logger.log_info(
+        #     f"item_id_decoder ready: max_nvt_idx={max_nvt_idx}, "
+        #     f"sample: nvt[3]->{self.decode_table[3]}, "
+        #     f"nvt[1802]->{self.decode_table[min(1802, max_nvt_idx)]}"
+        # )
 
     def execute(self, requests):
         responses = []
@@ -64,7 +64,7 @@ class TritonPythonModel:
             request, "ordered_ids"
         ).as_numpy().reshape(-1)
 
-        pb_utils.Logger.log_warn(f"NVT-encoded item ids received by ID decoder model: {nvt_ids.tolist()}")
+        # pb_utils.Logger.log_warn(f"NVT-encoded item ids received by ID decoder model: {nvt_ids.tolist()}")
         scores = pb_utils.get_input_tensor_by_name(
             request, "ordered_scores"
         ).as_numpy().reshape(-1)
@@ -72,7 +72,7 @@ class TritonPythonModel:
         # Decode: clamp to valid range, then lookup
         clamped = np.clip(nvt_ids, 0, len(self.decode_table) - 1) #not really necessary as the NVTworkflow item vocab cannot be misaligned with the decoder table (unique item ids) since they are both updated together during training.
         original_ids = self.decode_table[clamped]
-        pb_utils.Logger.log_warn(f"Original item ids decoded by ID decoder model: {original_ids.tolist()}")
+        # pb_utils.Logger.log_warn(f"Original item ids decoded by ID decoder model: {original_ids.tolist()}")
 
         return pb_utils.InferenceResponse([
             pb_utils.Tensor("ordered_ids", original_ids.astype(np.int32)),

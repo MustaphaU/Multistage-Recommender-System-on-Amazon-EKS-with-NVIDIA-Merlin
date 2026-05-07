@@ -55,11 +55,11 @@ class TritonPythonModel:
     def _handle(self, request):
         item_ids = pb_utils.get_input_tensor_by_name(request, "item_id").as_numpy().reshape(-1)
 
-        pb_utils.Logger.log_warn(f"item_ids received by embedding lookup model: {item_ids.tolist()}")
+        #pb_utils.Logger.log_warn(f"item_ids received by embedding lookup model: {item_ids.tolist()}")
         n_embed = self.image_embeddings.shape[0]
         safe_ids = np.clip(item_ids, 0, n_embed - 1) #not really necessary as any new item should have been embedded already and the workflow should have been updated.
 
-        pb_utils.Logger.log_warn(f"safe_ids used for embedding lookup: {safe_ids.tolist()}")
+        #pb_utils.Logger.log_warn(f"safe_ids used for embedding lookup: {safe_ids.tolist()}")
         image_emb = self.image_embeddings[safe_ids].astype(np.float32)
         text_emb = self.text_embeddings[safe_ids].astype(np.float32)
 

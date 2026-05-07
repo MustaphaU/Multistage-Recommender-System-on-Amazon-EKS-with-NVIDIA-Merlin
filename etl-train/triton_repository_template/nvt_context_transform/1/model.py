@@ -15,7 +15,7 @@ Output: device_type     (TYPE_INT32, [-1]) — categorified
 Artifacts:
     1/workflow/  — NVTabular context subworkflow (contains Categorify vocab) -> use the full workflow object, unless you saved the context subgraph separately, also ensure to include the categories parquet files
 
-Update cadence: Retrained/exported on schema changes or new features.
+Update cadence: Retrained/exported on schema changes or new features emerge.
 """
 
 import json

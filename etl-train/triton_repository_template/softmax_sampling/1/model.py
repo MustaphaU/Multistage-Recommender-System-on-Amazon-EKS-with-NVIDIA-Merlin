@@ -111,7 +111,7 @@ class TritonPythonModel:
             request, "click/binary_classification_task"
         ).as_numpy().reshape(-1)
 
-        pb_utils.Logger.log_warn(f"candidates are received by softmax model: {candidate_ids.tolist()}")
+        #pb_utils.Logger.log_warn(f"candidates are received by softmax model: {candidate_ids.tolist()}")
         num_items = len(candidate_ids)
         topk = min(self.topk, num_items)
 

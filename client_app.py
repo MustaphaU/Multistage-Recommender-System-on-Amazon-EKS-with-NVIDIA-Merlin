@@ -1,4 +1,5 @@
 """
+MOTE: Please run this from a pod in the same Kubernetes cluster as the Redis/Valkey instance, so it can connect to the Redis service URL.
 client_app.py — Multistage Recommender System client.
 
 Gets recommendations for a user, then simulates an interaction by randomly

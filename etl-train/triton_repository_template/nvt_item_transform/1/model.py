@@ -69,7 +69,7 @@ class TritonPythonModel:
             "category_l2": pb_utils.get_input_tensor_by_name(request, "category_l2").as_numpy().reshape(-1),
             "item_gender": pb_utils.get_input_tensor_by_name(request, "item_gender").as_numpy().reshape(-1),
         }
-        pb_utils.Logger.log_warn(f"item ids received by item NVT model: {input_tensors['item_id'].tolist()}")
+        #pb_utils.Logger.log_warn(f"item ids received by item NVT model: {input_tensors['item_id'].tolist()}")
         transformed = self.runner.run_workflow(input_tensors)
         output_tensors = [pb_utils.Tensor(name, data) for name, data in transformed.items()]
         return pb_utils.InferenceResponse(output_tensors)
