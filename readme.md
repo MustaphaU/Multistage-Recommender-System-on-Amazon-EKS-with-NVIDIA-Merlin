@@ -1,6 +1,6 @@
 ### Multistage Recommender System Deployed on Amazon EKS
 ![Model serving architecture](static/Model_serving.png)  
-This project multistage recommender system features:
+This Multistage recommender system features:
 * Cold-start handling with feature masking and context-aware recommendations.
 * Multimodal embeddings – image and text
 * Automated finetuning
