@@ -1,7 +1,7 @@
 perf_data.json
 *.yaml
 *.ipynb
-Docs/my_plan_for_eks_deployment.md
+Docs/mp.md
 triton_repository_experiment
 testing_incremental_training
 .image_uris
@@ -11,3 +11,4 @@ my_data_lake
 initial_data_real/*
 initial_data.zip
 lambda
+.gitignore
