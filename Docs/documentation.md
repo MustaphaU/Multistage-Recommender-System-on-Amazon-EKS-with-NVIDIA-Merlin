@@ -956,7 +956,45 @@ EOF
     # Open http://localhost:3000 (admin/admin)
     ```
 
-### 16. Build and Push pipeline containers to Amamzon ECR
+### 16. Deploy the Horizontal Pod Autoscaler
+The YAML files are located in the [scaling_yamls](../scaling_yamls) directory
+* create the `custom-metrics` namespace. Some of the the manifests reference this namespace; the namedspaced resources including ConfigMap, Deployment, ServiceAccount, Service will fail to create without it.
+
+    ```bash
+    kubectl create namespace custom-metrics
+    ```
+* apply [custom-metric-server-config.yaml](../scaling_yamls/custom-metric-server-config.yaml)
+    ```bash
+    kubectl apply -f custom-metric-server-config.yaml
+    ```
+    Deploys the ConfigMap which defines the translation rule i.e.,
+    
+    - Uses the raw triton metrics `nv_inference_queue_duration_us` and `nv_inference_request_success`, to compute **`avg_time_queue_ms`**.  
+
+    - **`avg_time_queue_ms`** = `'avg(delta(nv_inference_queue_duration_us{<<.LabelMatchers>>}[30s])/(1+delta(nv_inference_request_success{<<.LabelMatchers>>}[30s]))/1000) by (<<.GroupBy>>)'` and exposes this `avg_time_queue_ms`to HPA.
+
+* apply [custom-metric-server-rbac.yaml](../scaling_yamls/custom-metric-server-rbac.yaml): role-based access control (RBAC) 
+    ```bash
+    kubectl apply -f custom-metric-server-rbac.yaml
+    ```
+    - allows custom metrics adapter to read kubernetes resources and auth config; allows HPA controller to read custom metrics API.
+
+* apply [custom-metric-server.yaml](../scaling_yamls/custom-metric-server.yaml)
+    ```bash
+    kubectl apply -f custom-metric-server.yaml
+    ```
+    - runs the Prometheus Adapter pod and points it to Prometheus:  
+        `http://<PROMETHEUS_SERVICE_NAME>.<PROMETHEUS_NAMESPACE>.svc.cluster.local:9090`
+    - mounts the adapter config deployed earlier.
+    - registers APIService custom.metrics.k8s.io so Kubernetes/HPA can query it.
+
+* apply [triton-hpa.yaml](../scaling_yamls/triton-hpa.yaml)
+    ```bash
+    kubectl apply -f triton-hpa.yaml
+    ```
+    - creates horizontal pod autoscaler (HPA) resource which adjusts the number of pods in the specified target (the triton-triton-inference-server deployment) based on the custom metric (`avg_time_queue_ms`) that was exposed for the kubeflow namespace by the prometheus custom metrics adapter. If the metric value exceeds 200 milliseconds, the HPA will scale up the number of replicas in the target to 2 and will scale down to 1 if metric falls below 200 miiliseconds.
+
+### 17. Build and Push pipeline containers to Amamzon ECR
 #### a. Data extraction (and triton deployment) container:
 * navigate to the project root, then run the scripts below:
 ```bash
@@ -978,12 +1016,14 @@ chmod +x  docker/triton-inference/build_and_push_triton_inference_container.sh
 ./docker/triton-inference/build_and_push_triton_inference_container.sh $AWS_ACCOUNT_ID $AWS_DEFAULT_REGION
 ```
 
-### 17. Compile the full training pipeline; Upload in Kubeflow UI, and run
+### 18. Compile the full training pipeline; Upload in Kubeflow UI, and run
+```bash
 python kubeflowpipeline_1.py \
 -dcoi "$(cat .image_uris/data_copy_image_uri.txt)" \
 -ppi "$(cat .image_uris/etl_train_image_uri.txt)" \
 -ti "$(cat .image_uris/etl_train_image_uri.txt)" \
 -di "$(cat .image_uris/data_copy_image_uri.txt)"
+```
 
 
 
@@ -993,9 +1033,9 @@ python kubeflowpipeline_1.py \
 ```bash
 aws s3 cp new_data/ s3://$BUCKET/new_data/ --recursive
 ```
-### 18. Compile the incremental preprocessing pipeline
+### 19. Compile the incremental preprocessing pipeline
+```bash
 python3 kubeflowpipeline_2.py \
   -dcoi "$(cat .image_uris/data_copy_image_uri.txt)" \
   -eti "$(cat .image_uris/etl_train_image_uri.txt)"
-
-
+  ```
