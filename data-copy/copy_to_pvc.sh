@@ -27,8 +27,5 @@ if [[ "$triton_status" != *"STATUS: deployed"* ]]; then
 else
     echo "Triton already deployed. WEEKLY FULL RETRAIN RUN"
     #TODO: add the logic for copying all data (old+new) for FULL retrain
-    else
-        echo "Error: Directory ${local_data_path} does not exist. Exiting."
-        exit 1
-    fi
+    exit 1
 fi

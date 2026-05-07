@@ -750,7 +750,7 @@ kubectl get rolebinding merlin-kfp-binding -n kubeflow
 
 ### 13. Setup S3, Glue, and Athena for Feast
 
-a. create the S3 bucket, feast folder structure, and upload the raw training data and embedding models. Please replace `initial_data/` with your desired path.
+a. create the S3 bucket, feast folder structure, and upload the raw training data and embedding models. Please replace `initial_data/` with your desired path. Follow the instructions in [instructions_for_download](initial_data/instructions_for_download.md) to download the data and the embedding models.
 ```bash
 export BUCKET="multistage-recsys-bucket"
 

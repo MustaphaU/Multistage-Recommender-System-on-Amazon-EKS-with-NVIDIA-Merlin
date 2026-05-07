@@ -3,6 +3,7 @@ You can download the data from Google Drive: https://drive.google.com/file/d/1PI
 
 * Ensure to unzip and copyb the contents to this `intial_data` folder
 * The directory structure is:
+```bash
 initial_data
 ├── day_00.parquet
 ├── day_01.parquet
@@ -21,3 +22,4 @@ initial_data
 ├── item_images
 ├── items.parquet
 └── users.parquet
+```
