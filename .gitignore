@@ -8,4 +8,5 @@ testing_incremental_training
 archived_scripts
 data
 my_data_lake
-initial_data/*
+initial_data_real/*
+initial_data.zip
