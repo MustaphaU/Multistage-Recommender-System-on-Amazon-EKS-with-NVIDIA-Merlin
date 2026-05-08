@@ -1,0 +1,14 @@
+replicaCount: 1
+
+image:
+  # ECR image path (will be overridden by Helm install command)
+  imageName: 123456789012.dkr.ecr.us-east-1.amazonaws.com/merlin/merlin-inference:latest
+  pullPolicy: Always
+  modelRepositoryPath: /model/triton_model_repository
+  numGpus: 1
+
+service:
+  type: LoadBalancer
+
+#others
+service_account: provided_by_helm_override

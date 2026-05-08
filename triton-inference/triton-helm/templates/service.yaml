@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "triton-inference-server.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "triton-inference-server.name" . }}
+    chart: {{ template "triton-inference-server.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: 8000
+      targetPort: http
+      name: http-inference-server
+    - port: 8001
+      targetPort: grpc
+      name: grpc-inference-server
+    - port: 8002
+      targetPort: metrics
+      name: metrics-inference-server
+  selector:
+    app: {{ template "triton-inference-server.name" . }}
+    release: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "triton-inference-server-metrics.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "triton-inference-server-metrics.name" . }}
+    chart: {{ template "triton-inference-server.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  ports:
+  - name: metrics
+    port: 8002
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: {{ template "triton-inference-server.name" . }}
+    release: {{ .Release.Name }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "triton-inference-server-metrics-monitor.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "triton-inference-server-metrics-monitor.name" . }}
+    chart: {{ template "triton-inference-server.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "triton-inference-server-metrics.name" . }}
+  endpoints:
+  - port: metrics
+    interval: 10s

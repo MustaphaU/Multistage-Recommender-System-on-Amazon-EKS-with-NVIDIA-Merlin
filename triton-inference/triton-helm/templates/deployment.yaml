@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "triton-inference-server.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "triton-inference-server.name" . }}
+    chart: {{ template "triton-inference-server.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "triton-inference-server.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "triton-inference-server.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ .Values.service_account }}
+      nodeSelector:
+        karpenter.sh/nodepool: gpu-node-pool
+      tolerations:
+        - key: "nvidia.com/gpu"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.imageName }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: "storage"
+              mountPath: /model
+            - name: shm
+              mountPath: /dev/shm
+          resources:
+            limits:
+              nvidia.com/gpu: {{ .Values.image.numGpus }}
+          command: ["/bin/sh", "-c"]
+          args: ["bash /model/inference/start_triton.sh {{ .Values.image.modelRepositoryPath }}"]
+          ports:
+            - containerPort: 8000
+              name: http
+            - containerPort: 8001
+              name: grpc
+            - containerPort: 8002
+              name: metrics
+          livenessProbe:
+            httpGet:
+              path: /v2/health/live
+              port: http
+            initialDelaySeconds: 100
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /v2/health/ready
+              port: http
+            initialDelaySeconds: 100
+            periodSeconds: 30
+      volumes:
+        - name: "storage"
+          persistentVolumeClaim:
+            claimName: my-cluster-pvc
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi
