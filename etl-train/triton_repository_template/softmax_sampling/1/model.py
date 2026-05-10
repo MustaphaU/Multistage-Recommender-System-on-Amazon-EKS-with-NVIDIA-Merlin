@@ -17,63 +17,6 @@ Environment:
     SOFTMAX_TEMPERATURE  — Temperature parameter (default: 1e-8)
 """
 
-# import os
-# import logging
-
-# import numpy as np
-# import triton_python_backend_utils as pb_utils
-
-# logger = logging.getLogger("6c_softmax_sampling")
-
-# TOPK = int(os.environ.get("RANKING_TOPK", "10"))
-# TEMPERATURE = float(os.environ.get("SOFTMAX_TEMPERATURE", "1e-8"))
-
-
-# class TritonPythonModel:
-#     def initialize(self, args):
-#         logger.info("6c_softmax_sampling ready  (topk=%d, temp=%.1e)", TOPK, TEMPERATURE)
-
-#     def execute(self, requests):
-#         responses = []
-#         for request in requests:
-#             try:
-#                 responses.append(self._handle(request))
-#             except Exception as exc:
-#                 import traceback
-#                 responses.append(
-#                     pb_utils.InferenceResponse(
-#                         error=pb_utils.TritonError(traceback.format_exc())
-#                     )
-#                 )
-#         return responses
-
-#     def _handle(self, request):
-#         candidate_ids = pb_utils.get_input_tensor_by_name(
-#             request, "item_id"
-#         ).as_numpy().reshape(-1)
-
-#         scores = pb_utils.get_input_tensor_by_name(
-#             request, "click/binary_classification_task"
-#         ).as_numpy().reshape(-1)
-
-#         num_items = len(candidate_ids)
-#         topk = min(TOPK, num_items)
-
-#         weights = np.exp(TEMPERATURE * scores) / np.sum(scores)
-#         exponentials = -np.log(np.random.uniform(0, 1, size=num_items))
-#         exponentials /= weights
-
-#         sorted_idx = np.argsort(exponentials)
-#         top_ids = candidate_ids[sorted_idx][:topk]
-#         top_scores = scores[sorted_idx][:topk]
-
-#         return pb_utils.InferenceResponse([
-#             pb_utils.Tensor("ordered_ids", top_ids.astype(np.int32)),
-#             pb_utils.Tensor("ordered_scores", top_scores.astype(np.float32)),
-#         ])
-
-
-
 import numpy as np
 import triton_python_backend_utils as pb_utils
 

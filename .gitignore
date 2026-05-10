@@ -17,3 +17,4 @@ demo_app.py
 incremental_recsys_pipeline.yaml
 multistage_recsys_pipeline.yaml
 .streamlit
+ignore_session_based_sample
