@@ -21,7 +21,7 @@ if [[ "$triton_status" != *"STATUS: deployed"* ]]; then
 
     echo "Deploying Triton with image: $TRITON_INFERENCE_IMAGE_URI"
     
-    helm install triton /script/triton-inference/triton-helm/ \
+    helm upgrade --install triton /script/triton-inference/triton-helm/ \
         --set image.imageName=$TRITON_INFERENCE_IMAGE_URI \
         --set service_account=$SERVICE_ACCOUNT
 else
