@@ -35,12 +35,16 @@ def get_preprocess_incremental_component(image: str):
     @dsl.container_component
     def preprocess_incremental(
         local_data_path: str,
+        s3_bucket: str,
+        aws_region: str,
     ):
         return dsl.ContainerSpec(
             image=image,
             command=["bash", "/script/preprocess_incremental.sh"],
             args=[
                 local_data_path,
+                s3_bucket,
+                aws_region,
             ]
         )
     return preprocess_incremental
@@ -123,6 +127,8 @@ def create_pipeline(data_copy_image: str, etl_train_image: str):
         # Step 2:feature fetch + NVT transform
         preprocess_task = preprocess_op(
             local_data_path=local_data_path,
+            s3_bucket=s3_bucket,
+            aws_region=aws_region,
         ).set_caching_options(False).set_env_variable(name="HOME", value="/tmp")
         preprocess_task.set_display_name("Preprocess Data")
 

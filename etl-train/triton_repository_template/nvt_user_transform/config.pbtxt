@@ -15,6 +15,11 @@ input {
   data_type: TYPE_INT32
   dims: [ -1 ]
 }
+input {
+  name: "top_category"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
 output {
   name: "user_id"
   data_type: TYPE_INT32
@@ -32,6 +37,11 @@ output {
 }
 output {
   name: "gender"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+output {
+  name: "top_category"
   data_type: TYPE_INT32
   dims: [ -1 ]
 }

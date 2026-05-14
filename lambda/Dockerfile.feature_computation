@@ -1,0 +1,7 @@
+FROM public.ecr.aws/lambda/python:3.12
+
+COPY feature_computation.py ${LAMBDA_TASK_ROOT}/
+
+RUN pip install feast[redis] pandas redis boto3
+
+CMD ["feature_computation.lambda_handler"]

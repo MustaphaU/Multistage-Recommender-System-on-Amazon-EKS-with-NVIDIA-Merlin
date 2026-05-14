@@ -70,6 +70,10 @@ ensemble_scheduling {
       key: "gender"
       value: "feast_gender"
     }
+    output_map {
+      key: "top_category"
+      value: "feast_top_category"
+    }
   }
   # ── Step 1b: NVTabular user transform ──────────────────────────────
   step {
@@ -87,6 +91,10 @@ ensemble_scheduling {
       key: "gender"
       value: "feast_gender"
     }
+    input_map {
+      key: "top_category"
+      value: "feast_top_category"
+    }
     output_map {
       key: "user_id"
       value: "nvt_user_id"
@@ -102,6 +110,10 @@ ensemble_scheduling {
     output_map {
       key: "gender"
       value: "nvt_gender"
+    }
+    output_map {
+      key: "top_category"
+      value: "nvt_top_category"
     }
   }
   # ── Step 1c: NVTabular context transform ───────────────────────────
@@ -156,6 +168,10 @@ ensemble_scheduling {
     input_map {
       key: "gender"
       value: "nvt_gender"
+    }
+    input_map {
+      key: "top_category"
+      value: "nvt_top_category"
     }
     output_map {
       key: "output_1"
@@ -292,6 +308,7 @@ ensemble_scheduling {
     input_map { key: "age_norm"   value: "nvt_age_norm" }
     input_map { key: "age_binned" value: "nvt_age_binned" }
     input_map { key: "gender"     value: "nvt_gender" }
+    input_map { key: "top_category" value: "nvt_top_category" }
     # context features (bypass retrieval path)
     input_map { key: "device_type" value: "nvt_device_type" }
     input_map { key: "hour_sine"    value: "nvt_hour_sine" }
@@ -311,6 +328,7 @@ ensemble_scheduling {
     output_map { key: "age_norm"   value: "unroll_age_norm" }
     output_map { key: "age_binned" value: "unroll_age_binned" }
     output_map { key: "gender"     value: "unroll_gender" }
+    output_map { key: "top_category" value: "unroll_top_category" }
     output_map { key: "device_type" value: "unroll_device_type" }
     output_map { key: "hour_sine"    value: "unroll_hour_sine" }
     output_map { key: "hour_cosine"    value: "unroll_hour_cosine" }
@@ -333,6 +351,7 @@ ensemble_scheduling {
     input_map { key: "age_norm"   value: "unroll_age_norm" }
     input_map { key: "age_binned" value: "unroll_age_binned" }
     input_map { key: "gender"     value: "unroll_gender" }
+    input_map { key: "top_category" value: "unroll_top_category" }
     # context features
     input_map { key: "device_type" value: "unroll_device_type" }
     input_map { key: "hour_sine"    value: "unroll_hour_sine" }

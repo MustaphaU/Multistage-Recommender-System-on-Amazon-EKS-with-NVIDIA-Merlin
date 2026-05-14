@@ -27,6 +27,11 @@ input {
   dims: [ -1 ]
 }
 input {
+  name: "top_category"
+  data_type: TYPE_INT32
+  dims: [ -1 ]
+}
+input {
   name: "device_type"
   data_type: TYPE_INT32
   dims: [ -1 ]

@@ -21,6 +21,7 @@ user_features_view = FeatureView(
     schema=[
         Field(name="age", dtype=Int32),
         Field(name="gender", dtype=Int32),
+        Field(name="top_category", dtype=Int32),
     ],
     source=user_source,
     online=True,

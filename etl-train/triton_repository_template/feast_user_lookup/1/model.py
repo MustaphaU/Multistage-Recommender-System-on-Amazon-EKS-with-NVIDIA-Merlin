@@ -1,12 +1,14 @@
 """
 Model 1a: Feast User Lookup (Python Backend)
 ==============================================
-Feast online store → raw user features.
+Feast online store → raw user features, with an optional live top-category
+override derived from recent seen items stored in Redis.
 
 Input:  user_id  (TYPE_INT32, [-1])
 Output: user_id  (TYPE_INT32, [-1])
         age      (TYPE_INT32, [-1])
         gender   (TYPE_INT32, [-1])
+    top_category (TYPE_INT32, [-1])
 
 Environment:
     FEAST_REPO_PATH — Path to Feast feature repository
@@ -17,7 +19,7 @@ Model config parameters:
 
 Graceful degradation:
     If a user_id is not found in Feast (cold-start), returns defaults:
-    user_id=-1 (OOV sentinel), age=DEFAULT_USER_AGE, gender=-1 (OOV).
+    user_id=-1 (OOV sentinel), age=DEFAULT_USER_AGE, gender=-1 (OOV), top_category=-1 (OOV)
     The NVT workflow maps these to OOV embeddings that the model
     was trained to handle via 5% random OOV masking.
 
@@ -65,7 +67,7 @@ class TritonPythonModel:
                 )
         feast_repo = "/model/script/feast_repo/feature_repo"
         self.store = feast.FeatureStore(feast_repo)
-        self.feature_refs = ["user_features:age", "user_features:gender"]
+        self.feature_refs = ["user_features:age", "user_features:gender", "user_features:top_category"]
         # logger.info(
         #     "1a_feast_user ready  (feast=%s, default_age=%d)",
         #     feast_repo, self.default_age,
@@ -98,21 +100,26 @@ class TritonPythonModel:
         out_user_ids = []
         out_ages = []
         out_genders = []
+        out_top_cats = []
         for i, uid in enumerate(feast_dict["user_id"]):
             age = feast_dict["age"][i]
             gender = feast_dict["gender"][i]
+            top_cat = feast_dict["top_category"][i]
             if age is None or gender is None:
                 # Cold-start user: use OOV defaults
                 out_user_ids.append(OOV_SENTINEL)
                 out_ages.append(self.default_age)
                 out_genders.append(OOV_SENTINEL)
+                out_top_cats.append(OOV_SENTINEL)
             else:
                 out_user_ids.append(uid)
                 out_ages.append(age)
                 out_genders.append(gender)
+                out_top_cats.append(top_cat if top_cat is not None else OOV_SENTINEL)
 
         return pb_utils.InferenceResponse([
-            pb_utils.Tensor("user_id", np.array(out_user_ids, dtype=np.int32)),
-            pb_utils.Tensor("age",     np.array(out_ages,     dtype=np.int32)),
-            pb_utils.Tensor("gender",  np.array(out_genders,  dtype=np.int32)),
+            pb_utils.Tensor("user_id",      np.array(out_user_ids, dtype=np.int32)),
+            pb_utils.Tensor("age",          np.array(out_ages,     dtype=np.int32)),
+            pb_utils.Tensor("gender",       np.array(out_genders,  dtype=np.int32)),
+            pb_utils.Tensor("top_category", np.array(out_top_cats, dtype=np.int32)),
         ])

@@ -17,9 +17,24 @@ Usage:
 
 import argparse
 import random
+import time
 import redis
 import numpy as np
 import tritonclient.grpc as grpcclient
+
+
+RECENT_ITEMS_TTL_SECONDS = 7 * 24 * 60 * 60
+
+
+def _record_seen_items(redis_client, user_id: int, item_ids: list[int]) -> None:
+    now_ts = int(time.time())
+    pipe = redis_client.pipeline()
+    pipe.execute_command("BF.MADD", f"bf:seen:{user_id}", *item_ids)
+    pipe.expire(f"bf:seen:{user_id}", RECENT_ITEMS_TTL_SECONDS)
+    for item_id in item_ids:
+        pipe.zadd(f"user:{user_id}:recent_items", {str(item_id): now_ts})
+    pipe.expire(f"user:{user_id}:recent_items", RECENT_ITEMS_TTL_SECONDS)
+    pipe.execute()
 
 
 def main():
@@ -52,8 +67,8 @@ def main():
 
     if args.flush:
         r = redis.Redis.from_url(args.redis_url, decode_responses=True)
-        deleted = r.delete(f"bf:seen:{args.user_id}")
-        print(f"Flushed bf:seen:{args.user_id}" if deleted else f"No seen-items filter found for user {args.user_id}")
+        deleted = r.delete(f"bf:seen:{args.user_id}", f"user:{args.user_id}:recent_items")
+        print(f"Flushed seen state for user {args.user_id}" if deleted else f"No seen-items state found for user {args.user_id}")
         return
 
     # Get recommendations
@@ -92,9 +107,8 @@ def main():
     #simulate interaction: randomly pick 2 from the top 10 and mark as seen
     interacted = [int(i) for i in random.sample(list(ids[:args.top_k]), 2)]
     r = redis.Redis.from_url(args.redis_url, decode_responses=True)
-    r.execute_command("BF.MADD", f"bf:seen:{args.user_id}", *interacted)
-    r.expire(f"bf:seen:{args.user_id}", 7 * 24 * 60 * 60)
-    print(f"\nInteracted with items {interacted} — added to bf:seen:{args.user_id}")
+    _record_seen_items(r, args.user_id, interacted)
+    print(f"\nInteracted with items {interacted} — updated seen state for user {args.user_id}")
 
 
 if __name__ == "__main__":

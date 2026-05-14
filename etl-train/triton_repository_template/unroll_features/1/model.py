@@ -6,8 +6,8 @@ Cross-join 1 user × N items into N (user, item, context) pairs.
 Tiles each scalar user feature and context feature N times to match
 item array length, producing aligned arrays ready for the DLRM ranking model.
 
-Input:  4 user features (scalar) + 5 context features (scalar) + 7 item features (N items)
-Output: 4 user features (N each) + 5 context features (N each) + 7 item features (N each)
+Input:  5 user features (scalar) + 5 context features (scalar) + 7 item features (N items)
+Output: 5 user features (N each) + 5 context features (N each) + 7 item features (N each)
 
 No artifacts. Stateless numpy reshaping.
 """
@@ -19,7 +19,7 @@ import triton_python_backend_utils as pb_utils
 
 logger = logging.getLogger("6a_unroll_features")
 
-USER_FEATURES = ["user_id", "age_norm", "age_binned", "gender"]
+USER_FEATURES = ["user_id", "age_norm", "age_binned", "gender", "top_category"]
 CONTEXT_FEATURES = ["device_type", "hour_sine", "hour_cosine", "day_of_week_sine", "day_of_week_cosine"]
 ITEM_FEATURES = [
     "item_id", "category_l1", "category_l2", "item_gender",

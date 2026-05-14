@@ -1,4 +1,6 @@
 perf_data.json
+etl-train/preprocessing_scripts/__pycache__/
+catalog.json
 # *.yaml
 *.ipynb
 Docs/mp.md
@@ -10,11 +12,13 @@ data
 my_data_lake
 initial_data_real/*
 initial_data.zip
-lambda
+lambda/raw_and_mappings/*
+lambda/raw_and_mappings.zip
 .gitignore
 Docs/deployment_instructions.md
-demo_app.py
+# demo_app.py
 incremental_recsys_pipeline.yaml
 multistage_recsys_pipeline.yaml
-.streamlit
+# .streamlit
 ignore_session_based_sample
+personalization-apis

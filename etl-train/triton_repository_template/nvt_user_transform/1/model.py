@@ -3,8 +3,8 @@ Model 1b: User NVTabular Transform (Python Backend)
 =====================================================
 NVTabular user subworkflow: Normalize, Bucketize, Categorify.
 
-Input:  user_id (TYPE_INT32), age (TYPE_INT32), gender (TYPE_INT32)
-Output: user_id (TYPE_INT32), age_norm (TYPE_FP32), age_binned (TYPE_INT32), gender (TYPE_INT32)
+Input:  user_id (TYPE_INT32), age (TYPE_INT32), gender (TYPE_INT32), top_category (TYPE_INT32)
+Output: user_id (TYPE_INT32), age_norm (TYPE_FP32), age_binned (TYPE_INT32), gender (TYPE_INT32), top_category (TYPE_INT32)
 
 Artifacts:
     1/workflow/  — NVTabular user subworkflow
@@ -66,6 +66,7 @@ class TritonPythonModel:
             "user_id": pb_utils.get_input_tensor_by_name(request, "user_id").as_numpy().reshape(-1),
             "age":     pb_utils.get_input_tensor_by_name(request, "age").as_numpy().reshape(-1),
             "gender":  pb_utils.get_input_tensor_by_name(request, "gender").as_numpy().reshape(-1),
+            "top_category": pb_utils.get_input_tensor_by_name(request, "top_category").as_numpy().reshape(-1),
         }
         transformed = self.runner.run_workflow(input_tensors)
         output_tensors = [pb_utils.Tensor(name, data) for name, data in transformed.items()]

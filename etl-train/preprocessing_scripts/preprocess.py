@@ -44,6 +44,44 @@ def run_preprocessing(input_path, base_dir, train_days, valid_days):
     items = cudf.read_parquet(os.path.join(input_path, "items.parquet"))
     users = cudf.read_parquet(os.path.join(input_path, "users.parquet"))
 
+    # Compute behavioral user features from training interactions
+    logging.info("computing behavioral user features...")
+    all_days_list = []
+    for i in range(train_days):
+        d = cudf.read_parquet(os.path.join(input_path, f"day_{i:02d}.parquet"))
+        all_days_list.append(d[["user_id", "item_id"]])
+    all_days = cudf.concat(all_days_list, ignore_index=True)
+    del all_days_list
+    gc.collect()
+
+    # top_category: most frequent category_l1 per user
+    all_days_with_cats = all_days.merge(
+        items[["item_id", "category_l1"]], on="item_id", how="left"
+    )
+    top_cats = (
+        all_days_with_cats.groupby(["user_id", "category_l1"])
+        .size()
+        .reset_index()
+        .rename(columns={0: "cnt"})
+        .sort_values("cnt", ascending=False)
+        .drop_duplicates("user_id")[["user_id", "category_l1"]]
+        .rename(columns={"category_l1": "top_category"})
+    )
+    del all_days, all_days_with_cats
+    gc.collect()
+
+    users = users.merge(top_cats, on="user_id", how="left")
+    users["top_category"] = users["top_category"].fillna(-1).astype("int32")
+
+    feature_ts = pd.Timestamp.now()
+    users_for_store = users.to_pandas()
+    users_for_store["datetime"] = feature_ts
+    users_for_store["created"] = feature_ts
+    users_for_store.to_parquet(os.path.join(base_dir, "for_feature_store", "user_features.parquet"), index=False)
+    
+    del top_cats, users_for_store
+    gc.collect()
+
     for i in range(train_days):
         day = cudf.read_parquet(os.path.join(input_path, f"day_{i:02d}.parquet"))
         day = day.merge(users, on="user_id", how="left").merge(items, on="item_id", how="left")
@@ -58,11 +96,12 @@ def run_preprocessing(input_path, base_dir, train_days, valid_days):
         day.to_parquet(os.path.join(input_path, f"valid_day_{i:02d}.parquet"), index=False)
         del day
     
-    del users, items
+    del users
     gc.collect()
 
     
-    items = Dataset(os.path.join(input_path, "items.parquet"))
+    # items_ds = Dataset(os.path.join(input_path, "items.parquet"))
+    items_ds = Dataset(items)
     item_cats = ["item_id", "category_l1", "category_l2", "item_gender"] >> Categorify(dtype="int32", out_path=os.path.join(output_path, "item_subworkflow", "categories"))
     
     item_subworkflow = nvt.Workflow(
@@ -77,8 +116,17 @@ def run_preprocessing(input_path, base_dir, train_days, valid_days):
             )
         )
 
-    item_subworkflow.fit(items)
+    item_subworkflow.fit(items_ds)
     item_subworkflow.save(os.path.join(output_path, "item_subworkflow"))
+
+    #add timestamps to items 
+    item_ts = pd.Timestamp.now()
+    items_for_store = items.to_pandas()
+    items_for_store["datetime"] = item_ts
+    items_for_store["created"] = item_ts
+    items_for_store.to_parquet(os.path.join(base_dir, "for_feature_store", "item_features.parquet"), index=False)
+    del items, items_for_store, items_ds
+    gc.collect()
 
     IMG_DIR = os.path.join(input_path, "item_images")
     IMG_CACHE_PATH = os.path.join(base_dir, "lookup_embeddings", "lookup_embeddings_image.npy")
@@ -160,39 +208,23 @@ def run_preprocessing(input_path, base_dir, train_days, valid_days):
         logging.info(f"Saved description embeddings to {DESC_CACHE_PATH} and PCA model to {os.path.join(base_dir, 'lookup_embeddings', 'desc_pca_model.pkl')}")
 
 
-
-    #add datetime and created timestamp for both user and item tables
-    users = pd.read_parquet(os.path.join(input_path, "users.parquet"))
-    users['datetime'] = datetime.now()
-    users['datetime'] = users['datetime'].astype('datetime64[ns]')
-    users['created'] = datetime.now()
-    users['created'] = users['created'].astype('datetime64[ns]')
-    users.to_parquet(os.path.join(base_dir, "for_feature_store", "user_features.parquet"), index=False)
-
-    #items
-    items = pd.read_parquet(os.path.join(input_path, "items.parquet"))
-    items['datetime'] = datetime.now()
-    items['datetime'] = items['datetime'].astype('datetime64[ns]')
-    items['created'] = datetime.now()
-    items['created'] = items['created'].astype('datetime64[ns]')
-
-    items.to_parquet(os.path.join(base_dir, "for_feature_store", "item_features.parquet"), index=False)
-
     #convert interactions data to NVTabular datasets
     train_raw_paths = [os.path.join(input_path, f"train_day_{i:02d}.parquet") for i in range(train_days)]
     valid_raw_paths = [os.path.join(input_path, f"valid_day_{i:02d}.parquet") for i in range(train_days, train_days + valid_days)]
     train_raw = Dataset(train_raw_paths)
     valid_raw = Dataset(valid_raw_paths)
 
+    
     #Feature Engineering with NVTabular
-
+    
     #USER subworkflow
     age_norm_op = Normalize(out_dtype=np.float32)
     user_ops = (
         (["user_id"] >> Categorify(dtype="int32") >> TagAsUserID()) +
         (["age"] >> age_norm_op >> Rename(postfix="_norm") >> TagAsUserFeatures()) +
         (["age"] >> Bucketize({"age": [18, 25, 35, 50, 65]}) >> Rename(postfix="_binned") >> Categorify(dtype="int32") >> TagAsUserFeatures()) +
-        (["gender"] >> Categorify(dtype="int32") >> TagAsUserFeatures())
+        (["gender"] >> Categorify(dtype="int32") >> TagAsUserFeatures()) +
+        (["top_category"] >> Categorify(dtype="int32") >> TagAsUserFeatures())
     )
 
     user_subworkflow = nvt.Workflow(user_ops)
@@ -200,7 +232,7 @@ def run_preprocessing(input_path, base_dir, train_days, valid_days):
     user_subworkflow.save(os.path.join(output_path, "user_subworkflow"))
     logging.info(f"Mean users age: {age_norm_op.means}, Std users age: {age_norm_op.stds}")
 
-    #save the mean age for use as cold start defualt age later.
+    #save the mean age for use as cold start default age later.
     age_stats = {
     "age_mean": int(age_norm_op.means["age"]),
     }
@@ -256,7 +288,7 @@ def run_preprocessing(input_path, base_dir, train_days, valid_days):
     )
     subgraph_user = Subgraph(
         "user", 
-        ["user_id", "age", "gender"] >> TransformWorkflow(user_subworkflow)
+        ["user_id", "age", "gender", "top_category"] >> TransformWorkflow(user_subworkflow)
     )   
     subgraph_context = Subgraph(
         "context",
@@ -273,7 +305,9 @@ def run_preprocessing(input_path, base_dir, train_days, valid_days):
     #MASK some users and context features in train data with 5% probability 
     ANONYMOUS_USER = -1
     OOV_GENDER = -1
+    OOV_TOP_CATEGORY = -1
     OOV_DEVICE = -1
+
     masked_train_dir = os.path.join(input_path, "masked_train")
     os.makedirs(masked_train_dir, exist_ok=True)
 
@@ -283,7 +317,8 @@ def run_preprocessing(input_path, base_dir, train_days, valid_days):
         user_mask = cupy.random.random(n) < 0.05
         day.loc[user_mask, "user_id"] = ANONYMOUS_USER
         day.loc[user_mask, "gender"] = OOV_GENDER
-
+        day.loc[user_mask, "top_category"] = OOV_TOP_CATEGORY
+        
         device_mask = cupy.random.random(n) < 0.05
         day.loc[device_mask, "device_type"] = OOV_DEVICE
         day.to_parquet(os.path.join(masked_train_dir, f"train_day_{i:02d}.parquet"), index=False)
