@@ -23,6 +23,7 @@ import json
 import logging
 import os
 import uuid
+from collections import Counter
 from datetime import datetime, timedelta
 
 import boto3
@@ -39,7 +40,7 @@ REDIS_HOST       = os.environ.get("REDIS_HOST") or os.environ["REDIS_URL"]
 DYNAMO_TABLE     = os.environ["DYNAMO_TABLE"]
 FEAST_S3_BUCKET  = os.environ["FEAST_S3_BUCKET"]
 FEAST_AWS_REGION = os.environ["FEAST_AWS_REGION"]
-SEVEN_DAYS_SECS  = 7 * 24 * 60 * 60
+ONE_DAY_SECS  = 24 * 60 * 60
 
 _redis_client = None
 _store        = None
@@ -111,7 +112,7 @@ def _flush_to_s3(rows: list[dict]):
 
 
 def _compute_top_category(user_id: int) -> int:
-    cutoff = int((datetime.now() - timedelta(seconds=SEVEN_DAYS_SECS)).timestamp())
+    cutoff = int((datetime.now() - timedelta(seconds=ONE_DAY_SECS)).timestamp() * 1_000_000)
     recent_ids = [
         int(i) for i in
         _get_redis().zrangebyscore(f"user:{user_id}:recent_items", cutoff, "+inf")
@@ -128,7 +129,15 @@ def _compute_top_category(user_id: int) -> int:
     if not cats:
         return -1
 
-    return int(max(set(cats), key=cats.count))
+    counts = Counter(cats)
+    max_count = max(counts.values())
+    tied_categories = {category for category, count in counts.items() if count == max_count}
+
+    for category in reversed(cats):
+        if category in tied_categories:
+            return int(category)
+
+    return -1
 
 
 def lambda_handler(event, context):
@@ -139,8 +148,7 @@ def lambda_handler(event, context):
             user_id = int(body["user_id"])
 
             if body.get("flush"):
-                # flush resets online store but carries no behavioral signal — skip offline write
-                _write_top_category(user_id, -1)
+                pass  # Bloom filter and sorted set already cleared; retain existing top_category
             else:
                 top_category = _compute_top_category(user_id)
                 if top_category != -1:

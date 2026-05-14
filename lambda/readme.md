@@ -1,7 +1,7 @@
 # Summary
-The main goals of this documentation is to setup the DyanamoDB table for enriching recommendations with item metadata and to set up the lambda functions for fetching recommendations and for updating the behavioural features in the feature stores.
+This documentation presents how to set up the DynamoDB table for enriching recommendations with item metadata, as well as the Lambda functions for fetching recommendations and updating behavioral features in the feature stores.
 
-![Updating features in near-real time](../static/rec_request_feature_update.png)
+![Updating user features in near-real time](../static/rec_request_feature_update.png)
 
 ## 1.  Download the Original Items Metadata and Images
 * Please visit this link to download the items metadata and the images with UUIDs: 
@@ -107,7 +107,7 @@ Lambda runs in the ElastiCache VPC (private subnets). Three things are needed:
 
 **a. Allow Lambda SG → EKS cluster SG on port 8001 (Triton gRPC)**
 ```bash
-EKS_SG=$(aws eks describe-cluster --name <your-cluster-name> \
+EKS_SG=$(aws eks describe-cluster --name $CLUSTER \
   --query 'cluster.resourcesVpcConfig.clusterSecurityGroupId' --output text)
 
 aws ec2 authorize-security-group-ingress \
@@ -205,7 +205,7 @@ aws lambda create-function-url-config \
 
 * test the url
 ```bash
-curl -s -X POST "https://gqc6wl5otaboztaupir6owr4gq0lwvnv.lambda-url.us-east-1.on.aws/" \
+curl -s -X POST "<LAMBDA_URL>" \
   -H "Content-Type: application/json" \
   -d '{"user_id": 1008, "device_type": 1}' | jq .
 ```

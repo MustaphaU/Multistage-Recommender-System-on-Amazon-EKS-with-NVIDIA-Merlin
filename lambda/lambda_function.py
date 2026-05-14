@@ -116,12 +116,12 @@ def lambda_handler(event, context):
     # Mark specific items as seen (called when user interacts with a recommendation)
     if mark_seen is not None:
         if mark_seen:
-            now = int(datetime.datetime.now().timestamp())
+            base_score = int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1_000_000)
             pipe = r.pipeline()
             pipe.execute_command("BF.MADD", f"bf:seen:{user_id}", *[int(i) for i in mark_seen])
             pipe.expire(f"bf:seen:{user_id}", 7 * 24 * 60 * 60)
-            for item_id in mark_seen:
-                pipe.zadd(f"user:{user_id}:recent_items", {str(item_id): now})
+            for offset, item_id in enumerate(mark_seen):
+                pipe.zadd(f"user:{user_id}:recent_items", {str(item_id): base_score + offset})
             pipe.expire(f"user:{user_id}:recent_items", 7 * 24 * 60 * 60)
             pipe.execute()
             _get_sqs_client().send_message(
