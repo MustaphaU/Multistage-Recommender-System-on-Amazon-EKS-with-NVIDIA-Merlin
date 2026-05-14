@@ -22,3 +22,4 @@ multistage_recsys_pipeline.yaml
 # .streamlit
 ignore_session_based_sample
 personalization-apis
+client_app.py
