@@ -95,12 +95,14 @@ def make_timestamp(hour) -> int | None:
 
 # Session state
 for key, default in [
-    ("recs",            []),
-    ("snapshot_recs",   []),
-    ("seen_items",      set()),
-    ("pending_refresh", False),
-    ("catalog_page",    0),
-    ("last_filter",     None),
+    ("recs",             []),
+    ("snapshot_recs",    []),
+    ("seen_items",       set()),
+    ("pending_refresh",  False),
+    ("show_comparison",  False),
+    ("catalog_page",     0),
+    ("last_filter",      None),
+    ("active_user",      None),
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
@@ -201,6 +203,12 @@ if flush_btn:
     st.rerun()
 
 if get_btn:
+    if st.session_state.active_user != user_id:
+        st.session_state.seen_items      = set()
+        st.session_state.snapshot_recs   = []
+        st.session_state.pending_refresh = False
+        st.session_state.show_comparison = False
+        st.session_state.active_user     = user_id
     with st.spinner("Querying Triton ensemble…"):
         st.session_state.recs = fetch_recs(user_id, device_type, timestamp, top_k)
     st.session_state.snapshot_recs  = []
@@ -219,8 +227,13 @@ all_categories = sorted(set(i["category_l1"] for i in catalog if i["category_l1"
 
 
 # SECTION 1 — Recommended for You
-# st.header("Recommended for You")
-st.markdown("### *Recommended for You*")
+hdr_col, toggle_col = st.columns([4, 1])
+with hdr_col:
+    st.markdown("### *Recommended for You*")
+with toggle_col:
+    st.session_state.show_comparison = st.toggle(
+        "Before / After", value=st.session_state.show_comparison
+    )
 
 if not st.session_state.recs:
     st.info("Select a user and click **Get Recommendations** to start.")
@@ -249,7 +262,7 @@ else:
                 st.rerun()
 
     # before / after view
-    if snapshot:
+    if snapshot and st.session_state.show_comparison:
         prev_ids = {r["item_id"] for r in snapshot}
         curr_ids = {r["item_id"] for r in recs}
         new_ids  = curr_ids - prev_ids

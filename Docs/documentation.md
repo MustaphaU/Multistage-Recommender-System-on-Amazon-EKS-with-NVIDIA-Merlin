@@ -1094,8 +1094,28 @@ python3 kubeflowpipeline_2.py \
 a. First visit [this readme](../lambda/readme.md) for instructions on setting up the client.
 
 
-b. Start the client by running the following commands from the project's root
+b. Generate the item catalog from DynamoDB (required by the demo app; `catalog.json` is gitignored)
+```bash
+python3 - <<'EOF'
+import boto3, json
+dynamo = boto3.resource("dynamodb", region_name="us-east-1")
+table = dynamo.Table("items")
+items, last_key = [], None
+while True:
+    resp = table.scan(**({"ExclusiveStartKey": last_key} if last_key else {}))
+    items.extend(resp["Items"])
+    last_key = resp.get("LastEvaluatedKey")
+    if not last_key:
+        break
+with open("catalog.json", "w") as f:
+    json.dump(items, f)
+print(f"Saved {len(items)} items to catalog.json")
+EOF
+```
+
+c. Start the client by running the following commands from the project's root
 ```bash
 pip install streamlit requests plotly
+export LAMBDA_URL="your-lambda-url"
 streamlit run demo_app.py
 ```

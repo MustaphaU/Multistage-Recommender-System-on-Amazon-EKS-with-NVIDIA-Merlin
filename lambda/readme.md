@@ -205,7 +205,7 @@ aws lambda create-function-url-config \
 
 * test the url
 ```bash
-curl -s -X POST "<LAMBDA_URL>" \
+curl -s -X POST $LAMBDA_URL \
   -H "Content-Type: application/json" \
   -d '{"user_id": 1008, "device_type": 1}' | jq .
 ```
@@ -245,7 +245,7 @@ aws lambda update-function-configuration \
 ```
 
 ## 3. Setting up the feature computation Lambda
-This function is triggered by SQS when a message arrives in the queue. It computes the current user's `top_category` based on events from the past 7 days in the user's sorted set, then updates both the online and offline feature stores with the new `top_category`. This ensures the model can use the most recent user features on the next request. Although online feature updates are often processed asynchronously in batches, this setup updates features immediately for each queued event to demonstrate near real-time adaptation of the models to recent user behavior.
+This function is triggered by SQS when a message arrives in the queue. It computes the current user's `top_category` based on events from the past 24 hours in the user's sorted set, then updates both the online and offline feature stores with the new `top_category`. This ensures the model can use the most recent user features on the next request. Although online feature updates are often processed asynchronously in batches, this setup updates features immediately for each queued event to demonstrate near real-time adaptation of the models to recent user behavior.
 
 * Build and push the container image
 ```bash
