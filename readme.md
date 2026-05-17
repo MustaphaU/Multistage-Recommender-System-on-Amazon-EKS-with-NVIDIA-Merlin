@@ -30,7 +30,7 @@ A user request triggers a 14-stage ensemble served by NVIDIA Triton Inference Se
 2. **NVT transforms** — applies the same NVTabular preprocessing workflow used during training to user, item, and context features
 3. **Two-Tower retrieval** — encodes the user query and searches a FAISS index of item embeddings to retrieve the top-N candidates
 4. **Bloom filter** — removes items the user has already seen using a Redis/Valkey Bloom filter
-5. **Feast item lookup** — resolves item features (category, price, gender) from a numpy in-memory cache loaded at startup (~0.5ms vs ~157ms for a live Feast round trip)
+5. **Feast item lookup** — resolves item features (category, price, gender) from a numpy in-memory cache loaded at startup (~0.5ms vs ~195ms for a live Feast round trip)
 6. **Multimodal embedding lookup** — attaches CLIP image and sentence-transformer text embeddings (PCA-reduced to 64-dim each) to each candidate
 7. **DLRM ranking** — scores the filtered candidates; a reranker reranks and samples from the scored candidates and  results are returned to the caller enriched with DynamoDB item metadata
 
