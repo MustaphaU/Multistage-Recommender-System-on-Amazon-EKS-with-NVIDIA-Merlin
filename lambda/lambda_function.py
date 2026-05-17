@@ -33,7 +33,6 @@ REDIS_HOST    = os.environ.get("REDIS_HOST") or os.environ["REDIS_URL"]
 DYNAMO_TABLE  = os.environ["DYNAMO_TABLE"]
 SQS_QUEUE_URL = os.environ["SQS_QUEUE_URL"]
 
-# Reuse connections across warm invocations
 _triton_client = None
 _redis_client  = None
 _dynamo_table  = None
@@ -161,7 +160,6 @@ def lambda_handler(event, context):
     top_ids    = [int(i) for i in ids[:top_k]]
     top_scores = [float(s) for s in scores[:top_k]]
 
-    # Enrich with item metadata from DynamoDB
     dynamo = boto3.resource("dynamodb", region_name=os.environ.get("AWS_DEFAULT_REGION", "us-east-1"))
     dynamo_response = dynamo.batch_get_item(
         RequestItems={

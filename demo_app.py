@@ -81,9 +81,10 @@ def mark_seen(user_id: int, item_ids: list):
 
 def flush_user(user_id: int):
     call_lambda({"user_id": user_id, "flush": True})
-    st.session_state.seen_items     = set()
-    st.session_state.snapshot_recs  = []
+    st.session_state.seen_items      = set()
+    st.session_state.snapshot_recs   = []
     st.session_state.pending_refresh = False
+    st.session_state.show_comparison = False
 
 
 def make_timestamp(hour) -> int | None:
