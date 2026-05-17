@@ -1,4 +1,4 @@
-# Multistage Recommender System on Amazon EKS
+# Multistage Multimodal Recommender System on Amazon EKS
 
 A production-grade multistage recommender system deployed on Kubernetes, combining two-tower retrieval, DLRM ranking, multimodal item embeddings, and a real-time behavioral personalization loop.  
 
