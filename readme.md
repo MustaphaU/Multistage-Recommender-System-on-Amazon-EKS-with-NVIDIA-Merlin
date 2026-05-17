@@ -4,7 +4,12 @@ A production-grade multistage recommender system deployed on Kubernetes, combini
 
 **Model serving pipeline**
 ![Model serving architecture](static/Model_serving.png)
+---
 
+## Architecture
+
+**MLOps architecture**
+![MLOps architecture](static/MLOps_arch_updated.png)
 ---
 
 ## Medium article
@@ -55,13 +60,6 @@ A user request triggers a 14-stage ensemble served by NVIDIA Triton Inference Se
 | Real-time features | AWS SQS → Lambda → Feast + S3 |
 | Training pipeline | Kubeflow Pipelines on EKS |
 | Preprocessing and Training | NVIDIA NVTabular, Merlin-Tensorflow |
-
----
-
-## Architecture
-
-**MLOps architecture**
-![MLOps architecture](static/MLOps_arch_updated.png)
 
 ---
 
