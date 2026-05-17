@@ -42,18 +42,7 @@ A user request triggers a 14-stage ensemble served by NVIDIA Triton Inference Se
 
 ---
 
-## Key features
-
-- **Cold-start handling** — 5% of training rows are masked to OOV to teach the model to handle unknown users and missing context
-- **Multimodal embeddings** — CLIP (image) and sentence-transformers (text), both PCA-reduced to 64 dimensions
-- **Bloom filter deduplication** — per-user seen-item filter in Redis with a 7-day TTL
-- **In-memory item feature cache** — numpy arrays indexed by raw item ID, loaded from Feast at Triton startup
-- **Incremental fine-tuning** — a Kubeflow Pipeline fetches new interactions, runs NVTabular preprocessing with experience replay, and fine-tunes the query tower and DLRM
-- **Triton autoscaling** — Kubernetes HPA on GPU utilisation + Karpenter for node provisioning
-
----
-
-## Tech stack
+## Stack
 
 | Layer | Technology |
 |---|---|
@@ -76,11 +65,6 @@ A user request triggers a 14-stage ensemble served by NVIDIA Triton Inference Se
 
 ---
 
-## Deployment and demo
-
+## Deployment
 
 Full deployment instructions: [Docs/documentation.md](Docs/documentation.md)
-
-The demo includes a Streamlit app with a personalized recommendations carousel and a browsable item catalog. Clicking items feeds the real-time behavioral loop and shifts recommendations within seconds.
-
----
